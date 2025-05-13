@@ -1,0 +1,18 @@
+import { Form, Input, InputNumber, Switch, Select, Button } from 'antd';
+
+export const CRUDPage = () => {
+const [form] = Form.useForm();
+
+return (
+<Form form={form} layout="vertical">
+  <% fields.forEach(field=> { %>
+    <Form.Item label="<%= field.label || field.name %>" name="<%= field.name %>">
+      <%= field.component %>
+    </Form.Item>
+    <% }); %>
+      <Form.Item>
+        <Button type="primary" htmlType="submit">提交</Button>
+      </Form.Item>
+</Form>
+);
+};

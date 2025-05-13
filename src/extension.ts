@@ -1,26 +1,88 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as ejs from 'ejs';
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
+import { getTemplatePath, parseFieldsFromType, generateMockDataCode, genColumnsCode, writeFileNextToCurrentEditor } from './utils';
+
 export function activate(context: vscode.ExtensionContext) {
+	const disposable = vscode.commands.registerTextEditorCommand('quick-crud.generateFromType', async () => {
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "quick-crud" is now active!');
+		const editor = vscode.window.activeTextEditor;
+		if (editor?.selection.isEmpty) {
+			vscode.window.showErrorMessage('请先选择 TS 类型片段!');
+		}
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('quick-crud.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from quick-crud!');
+		let text = editor?.document.getText(editor.selection);
+
+		const fields = parseFieldsFromType(text || '');
+
+		const template = await vscode.window.showQuickPick(
+			['form', 'table', 'table-with-search'],
+			{ placeHolder: '请选择生成模板类型' }
+		);
+		if (!template) { return; }
+
+		let searchFieldNames: string[] = [];
+		let tableFieldNames: string[] = [];
+
+		if (template === 'table-with-search') {
+			const search = await vscode.window.showQuickPick(
+				fields.map(f => f.name),
+				{ canPickMany: true, placeHolder: '选择作为搜索字段的字段' }
+			);
+			if (!search) { return; }
+			searchFieldNames = search;
+		}
+
+		if (template === 'table' || template === 'table-with-search') {
+			const table = await vscode.window.showQuickPick(
+				fields.map(f => f.name),
+				{ canPickMany: true, placeHolder: '选择展示在 Table 的字段' }
+			);
+			if (!table) { return; }
+			tableFieldNames = table;
+		}
+
+		const searchFields = fields.filter(f => searchFieldNames.includes(f.name));
+		const tableColumns = fields.filter(f => tableFieldNames.includes(f.name));
+
+		const templatePath = getTemplatePath(context, template);
+		const templateContent = fs.readFileSync(templatePath, 'utf-8');
+
+		const result = ejs.render(templateContent, {
+			fields,
+			searchFields,
+			tableColumns,
+		});
+
+		const mockData = generateMockDataCode(fields);
+		// const mockDataDoc = await vscode.workspace.openTextDocument({
+		// 	language: 'typescript',
+		// 	content: mockData,
+		// });
+
+		const columns = genColumnsCode(tableColumns);
+		// const columnsDoc = await vscode.workspace.openTextDocument({
+		// 	language: 'typescript',
+		// 	content: columns,
+		// });
+
+		// const doc = await vscode.workspace.openTextDocument({
+		// 	language: 'typescriptreact',
+		// 	content: result,
+		// });
+
+		// vscode.window.showTextDocument(doc);
+		// vscode.window.showTextDocument(mockDataDoc);
+		// vscode.window.showTextDocument(columnsDoc);
+
+		await writeFileNextToCurrentEditor('mockData.ts', mockData);
+		await writeFileNextToCurrentEditor('columns.ts', columns);
+		await writeFileNextToCurrentEditor('TableDemo.tsx', result);
 	});
 
 	context.subscriptions.push(disposable);
 }
 
-// This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() { }

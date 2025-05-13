@@ -1,0 +1,9 @@
+import { Table } from 'antd';
+import { columns } from './columns';
+import { mockData } from './mockData';
+
+export const CRUDPage = () => {
+return (
+<Table rowKey="id" columns={columns} dataSource={mockData} />
+);
+};

@@ -4,18 +4,41 @@
   "description": "",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.81.0"
+    "vscode": "^1.80.0"
   },
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "quick-crud.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "quick-crud.generateFromType",
+        "title": "代码生成：基于选中类型"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "quick-crud.generateFromType",
+          "when": "editorHasSelection",
+          "group": "6_quick_crud"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "quick-crud.generateFromType",
+        "key": "ctrl+alt+g",
+        "when": "editorTextFocus"
       }
     ]
   },
@@ -34,16 +57,21 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.100.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
+    "@types/vscode": "^1.100.0",
     "@typescript-eslint/eslint-plugin": "^8.31.1",
     "@typescript-eslint/parser": "^8.31.1",
-    "eslint": "^9.25.1",
-    "esbuild": "^0.25.3",
-    "npm-run-all": "^4.1.5",
-    "typescript": "^5.8.3",
     "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.5.2"
+    "@vscode/test-electron": "^2.5.2",
+    "esbuild": "^0.25.3",
+    "eslint": "^9.25.1",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^9.7.0",
+    "@types/ejs": "^3.1.5",
+    "ejs": "^3.1.10"
   }
 }

@@ -1,0 +1,32 @@
+import { Table, Form, Input, InputNumber, Switch, Select, Button } from 'antd';
+import { useState } from 'react';
+import { columns } from './columns';
+import { mockData } from './mockData';
+
+export const CRUDPage = () => {
+const [form] = Form.useForm();
+const [dataSource, setDataSource] = useState(mockData);
+
+
+const onSearch = () => {
+const values = form.getFieldsValue();
+console.log('搜索参数:', values);
+};
+
+return (
+<>
+  <Form form={form} layout="inline" onFinish={onSearch} style={{ marginBottom: 16 }}>
+    <% searchFields.forEach(field=> { %>
+      <Form.Item label="<%= field.label || field.name %>" name="<%= field.name %>">
+        <%= field.component %>
+      </Form.Item>
+      <% }); %>
+        <Form.Item>
+          <Button type="primary" htmlType="submit">搜索</Button>
+        </Form.Item>
+  </Form>
+
+  <Table rowKey="id" columns={columns} dataSource={dataSource} />
+</>
+);
+};
