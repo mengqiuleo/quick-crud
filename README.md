@@ -1,71 +1,92 @@
-# quick-crud README
+# quick-crud
 
-This is the README for your extension "quick-crud". After writing up a brief description, we recommend including the following sections.
+基于选中的 TypeScript 类型定义，一键生成完整的可运行、可调试的前端页面代码（CRUD 表单、表格、查询页等）
 
-## Features
+## 功能
+- 内置三种常用页面模板（表单、表格、表格+搜索）
+- 支持用户自定义模板
+- 可生成表格的 Mock 数据
+- 一键生成可运行、可调试页面
+- 支持右键菜单 / 快捷键 触发
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
 
-For example if there is an image subfolder under your extension project workspace:
+## 使用
 
-\!\[feature X\]\(images/feature-x.png\)
+### 直接使用内置模板
+PS: 内置模板目前只支持 react + antd 
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+![screen.gif](/resources/screen.gif)
 
-## Requirements
+生成的文件包括：
+  - columns.ts
+  - mockData.ts
+  - 模板文件
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
 
-## Extension Settings
+### 自定义模板
+需要在项目的 .vscode 文件夹下，声明一个 crud-templates 文件夹进行配置。
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+文件夹中需要配置一个 config.json 文件，自定义的 ejs 模板与 config.json 文件同级。config.json 的格式如下：
 
-For example:
+```json
+[
+  {
+    "type": "table-with-search", 
+    "name": "ERP-搜索表格模板",
+    "path": "table-with-search.ejs",
+    "ext": ".tsx"
+  }
+]
+```
+- type: 模板类型，目前支持三种模板类型（form, table, table-with-search）
+- name: 模板名称
+- path: 模板所在路径，模板和 config.json 同级
+- ext: 模板后缀类型（`ext: '.tsx' | '.vue'`）
 
-This extension contributes the following settings:
+#### 自定义模板举例
+``` tsx
+import { Table, Form, Input, InputNumber, Switch, Select, Button } from 'antd';
+import { useState } from 'react';
+import { columns } from './columns';
+import { mockData } from './mockData';
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+export const CRUDPage = () => {
+const [form] = Form.useForm();
+const [dataSource, setDataSource] = useState(mockData);
 
-## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+const onSearch = () => {
+const values = form.getFieldsValue();
+console.log('搜索参数:', values);
+};
 
-## Release Notes
+return (
+<>
+  <Form form={form} layout="inline" onFinish={onSearch} style={{ marginBottom: 16 }}>
+    <% searchFields.forEach(field=> { %>
+      <Form.Item label="<%= field.name %>" name="<%= field.name %>">
+        <%- field.component %>
+      </Form.Item>
+      <% }); %>
+        <Form.Item>
+          <Button type="primary" htmlType="submit">搜索</Button>
+          <Button size="small" htmlType="submit">重置</Button>
+        </Form.Item>
+  </Form>
 
-Users appreciate release notes as you update your extension.
+  <Table rowKey="id" columns={columns} dataSource={dataSource} />
+</>
+);
+};
+```
+需要特别关注的是：
 
-### 1.0.0
 
-Initial release of ...
+## TODO
+- [ ] 支持代码模板保存在 Github 等远程仓库
+- [ ] 支持团队和使用
+- [ ] 改进用户模板声明方式，目前使用 ejs 模板用户定义有些成本
 
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+<br />
 
 **Enjoy!**

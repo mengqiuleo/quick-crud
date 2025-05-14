@@ -1,13 +1,28 @@
 {
   "name": "quick-crud",
   "displayName": "quick-crud",
-  "description": "",
+  "description": "利用 TS 类型声明，快速生成可运行的 CRUD 代码片段",
   "version": "0.0.1",
+  "publisher": "mengqiuleo",
   "engines": {
     "vscode": "^1.80.0"
   },
   "categories": [
     "Other"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mengqiuleo/quick-crud.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mengqiuleo/quick-crud/issues"
+  },
+  "icon": "resources/logo.png",
+  "keywords": [
+    "quick-crud",
+    "template",
+    "react",
+    "antd"
   ],
   "activationEvents": [
     "onLanguage:typescript",
@@ -16,10 +31,6 @@
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
-      {
-        "command": "quick-crud.helloWorld",
-        "title": "Hello World"
-      },
       {
         "command": "quick-crud.generateFromType",
         "title": "快速生成 CRUD 代码片段"
