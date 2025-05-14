@@ -22,7 +22,7 @@
       },
       {
         "command": "quick-crud.generateFromType",
-        "title": "代码生成：基于选中类型"
+        "title": "快速生成 CRUD 代码片段"
       }
     ],
     "menus": {
