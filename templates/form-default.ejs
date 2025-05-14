@@ -6,8 +6,8 @@ const [form] = Form.useForm();
 return (
 <Form form={form} layout="vertical">
   <% fields.forEach(field=> { %>
-    <Form.Item label="<%= field.label || field.name %>" name="<%= field.name %>">
-      <%= field.component %>
+    <Form.Item label="<%= field.name %>" name="<%= field.name %>">
+      <%- field.component %>
     </Form.Item>
     <% }); %>
       <Form.Item>

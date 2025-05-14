@@ -3,7 +3,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as ejs from 'ejs';
 
-import { getTemplatePath, parseFieldsFromType, generateMockDataCode, genColumnsCode, writeFileNextToCurrentEditor } from './utils';
+import { parseFieldsFromType, writeFileNextToCurrentEditor } from './utils';
+import { getAllTemplatesByType } from './gen/gen-template';
+import { TemplateConfig } from './type';
+import { genColumnsCode } from './gen/gen-columns';
+import { generateMockDataCode } from './gen/gen-mockdata';
 
 export function activate(context: vscode.ExtensionContext) {
 	const disposable = vscode.commands.registerTextEditorCommand('quick-crud.generateFromType', async () => {
@@ -17,16 +21,34 @@ export function activate(context: vscode.ExtensionContext) {
 
 		const fields = parseFieldsFromType(text || '');
 
-		const template = await vscode.window.showQuickPick(
+		const templateType = await vscode.window.showQuickPick(
 			['form', 'table', 'table-with-search'],
 			{ placeHolder: '请选择生成模板类型' }
 		);
-		if (!template) { return; }
+		if (!templateType) { return; }
+
+		const allTemplates = getAllTemplatesByType(templateType, context);
+
+		if (allTemplates.length === 0) {
+			vscode.window.showErrorMessage(`没有找到类型为 ${templateType} 的模板`);
+			return;
+		}
+
+		let selectedTemplate: TemplateConfig;
+		if (allTemplates.length === 1) {
+			selectedTemplate = allTemplates[0];
+		} else {
+			const selectedName = await vscode.window.showQuickPick(
+				allTemplates.map(t => t.name),
+				{ placeHolder: '请选择具体模板' }
+			);
+			selectedTemplate = allTemplates.find(t => t.name === selectedName)!;
+		}
 
 		let searchFieldNames: string[] = [];
 		let tableFieldNames: string[] = [];
 
-		if (template === 'table-with-search') {
+		if (templateType === 'table-with-search') {
 			const search = await vscode.window.showQuickPick(
 				fields.map(f => f.name),
 				{ canPickMany: true, placeHolder: '选择作为搜索字段的字段' }
@@ -35,7 +57,7 @@ export function activate(context: vscode.ExtensionContext) {
 			searchFieldNames = search;
 		}
 
-		if (template === 'table' || template === 'table-with-search') {
+		if (templateType === 'table' || templateType === 'table-with-search') {
 			const table = await vscode.window.showQuickPick(
 				fields.map(f => f.name),
 				{ canPickMany: true, placeHolder: '选择展示在 Table 的字段' }
@@ -47,7 +69,10 @@ export function activate(context: vscode.ExtensionContext) {
 		const searchFields = fields.filter(f => searchFieldNames.includes(f.name));
 		const tableColumns = fields.filter(f => tableFieldNames.includes(f.name));
 
-		const templatePath = getTemplatePath(context, template);
+		const templatePath = selectedTemplate.isBuiltin
+			? path.join(context.extensionPath, 'templates', selectedTemplate.path)
+			: path.join(vscode.workspace.workspaceFolders![0].uri.fsPath, '.vscode', 'crud-templates', selectedTemplate.path);
+
 		const templateContent = fs.readFileSync(templatePath, 'utf-8');
 
 		const result = ejs.render(templateContent, {
@@ -79,7 +104,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		await writeFileNextToCurrentEditor('mockData.ts', mockData);
 		await writeFileNextToCurrentEditor('columns.ts', columns);
-		await writeFileNextToCurrentEditor('TableDemo.tsx', result);
+		await writeFileNextToCurrentEditor(`Template.${selectedTemplate.ext}`, result);
 	});
 
 	context.subscriptions.push(disposable);

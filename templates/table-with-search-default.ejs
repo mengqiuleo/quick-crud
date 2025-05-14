@@ -17,8 +17,8 @@ return (
 <>
   <Form form={form} layout="inline" onFinish={onSearch} style={{ marginBottom: 16 }}>
     <% searchFields.forEach(field=> { %>
-      <Form.Item label="<%= field.label || field.name %>" name="<%= field.name %>">
-        <%= field.component %>
+      <Form.Item label="<%= field.name %>" name="<%= field.name %>">
+        <%- field.component %>
       </Form.Item>
       <% }); %>
         <Form.Item>
